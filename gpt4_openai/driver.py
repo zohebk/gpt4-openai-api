@@ -19,8 +19,8 @@ import os
 import random
 
 cf_challenge_form = (By.ID, 'challenge-form')
-element_xpath = "//img"
-size_image_xpath = "//img[@width='1024' and @height='1792']"
+element_xpath = "//img[@width='1024' and @height='1792']"
+# size_image_xpath = "//img[@width='1024' and @height='1792']"
 chatgpt_textbox = (By.TAG_NAME, 'textarea')
 chatgpt_streaming = (By.CLASS_NAME, 'result-streaming')
 chatgpt_big_response = (By.XPATH, '//div[@class="flex-1 overflow-hidden"]//div[p]')
@@ -99,7 +99,7 @@ class ChatGptDriver:
         self.__headless = headless
 
         self._model = model
-        self._chatgpt_chat_url = 'https://chat.openai.com'
+        self._chatgpt_chat_url = 'https://chatgpt.com'
 
         if not self.__session_token and (
             not self.__email or not self.__password or not self.__auth_type
@@ -212,10 +212,11 @@ class ChatGptDriver:
 
         if self.__session_token:
             self.logger.debug('Restoring session_token...')
+            #zkchange
             self.driver.execute_cdp_cmd(
                 'Network.setCookie',
                 {
-                    'domain': 'chat.openai.com',
+                    'domain': '.chatgpt.com',
                     'path': '/',
                     'name': '__Secure-next-auth.session-token',
                     'value': self.__session_token,
@@ -232,7 +233,8 @@ class ChatGptDriver:
             )
 
         self.logger.debug('Ensuring Cloudflare cookies...')
-        self.__ensure_cf()
+        #zkchange
+        # self.__ensure_cf()
 
         self.logger.debug('Opening chat page...')
         self.driver.get(self._get_url())
@@ -459,7 +461,7 @@ class ChatGptDriver:
 
         for _ in range(5):
             try:
-                return self.driver.find_element(By.XPATH, size_image_xpath).get_attribute('src')
+                return self.driver.find_element(By.XPATH, element_xpath).get_attribute('src')
             except Exception as e:
                 print(e)
                 self.__sleep(0.5)
@@ -473,8 +475,8 @@ class ChatGptDriver:
         :return: Dictionary with keys `message` and `conversation_id`
         '''
         self.logger.debug('Ensuring Cloudflare cookies...')
-        self.__ensure_cf()
-        #self.__check_blocking_elements()
+        # self.__ensure_cf()
+        self.__check_blocking_elements()
 
         # Wait for page to load
         try:
@@ -532,14 +534,16 @@ class ChatGptDriver:
         self.logger.debug('Waiting for completion...')
 
         try:
+            # element_xpath = "//img"
             # Wait until chatgpt stops generating response
             regenerate_buttons = (By.XPATH, element_xpath)
             # stop_generating = (By.XPATH, "//*[.//div[contains(text(), 'Creating image')]]")
             # regenerate_buttons = (By.XPATH, "//div[preceding-sibling::*[1][self::button] and contains(@class, 'flex') and contains(@class, 'gap-1') and count(button)=2]")
             # regenerate_buttons = (By.XPATH, "//div[(contains(text(), 'Creating image'))]")
             self.__sleep(5)
+
             # regenerate_buttons = (By.XPATH,'//*[@id="__next"]/div[1]/div/main/div[1]/div[1]/div/div/div/div[3]/div/div/div[2]/div[2]/div[2]/div/span[2]/button')
-            WebDriverWait(self.driver, 300).until(
+            WebDriverWait(self.driver, 900).until(
                 EC.presence_of_element_located(regenerate_buttons)
             )
         except SeleniumExceptions.NoSuchElementException:
